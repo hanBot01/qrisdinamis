@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NotaQ - QRIS Dinamis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #00AA13; /* QRIS Green */
+      --primary-dark: #00880f;
+      --bg-color: #F3F4F6;
+      --card-bg: #ffffff;
+      --text-main: #1F2937;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+      --success: #10B981;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 0; 
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px; 
+      background: var(--bg-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 80px; 
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 24px 20px;
+      text-align: center;
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 0.9rem; opacity: 0.9; }
+
+    /* Content Tabs */
+    .tab-content { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
+    .tab-content.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- Tab Bayar --- */
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    
+    .input-prefix {
+      position: absolute;
+      left: 16px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 16px 16px 16px 50px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: #FAFAFA;
+      transition: all 0.2s;
+      outline: none;
+    }
+
+    .form-input:focus { border-color: var(--primary); background: #fff; }
+
+    .btn-generate {
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-generate:active { transform: scale(0.98); }
+
+    /* --- Tab Riwayat --- */
+    .filter-card {
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .date-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .date-col { flex: 1; }
+    .date-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+    }
+
+    .table-container {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    table { width: 100%; border-collapse: collapse; min-width: 300px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    th { background: #F9FAFB; font-weight: 600; color: var(--text-muted); }
+    
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-paid { background: #D1FAE5; color: #065F46; }
+    /* Removed status-cancel style as it won't be saved anymore */
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 10;
+    }
+
+    .nav-item {
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item i { font-size: 1.2rem; }
+
+    /* Popup QR */
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .popup-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+
+    .popup-content {
+      background: white;
+      border-radius: 24px;
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      position: relative;
+    }
+
+    .popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .popup-title { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+    .btn-close { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 10px; }
+
+    #qrcode {
+      display: inline-block;
+      padding: 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .amount-display {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 24px;
+    }
+
+    /* Removed .btn-download styles */
+
+    .status-actions { display: flex; gap: 10px; border-top: 1px solid var(--border); padding-top: 20px; }
+    .btn-status { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .btn-paid { background: var(--primary); color: white; }
+    .btn-cancel { background: var(--danger); color: white; }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="header">
+      <h1>NotaQ Payment</h1>
+      <p>QRIS Dinamis Generator</p>
+    </header>
+
+    <!-- Tab: Bayar -->
+    <section id="tab-bayar" class="tab-content active">
+      <div class="form-card">
+        <form id="payment-form">
+          <div class="form-group">
+            <label class="form-label" for="input-nominal">Nominal Pembayaran (Rp)</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">Rp</span>
+              <input type="number" id="input-nominal" class="form-input" placeholder="0" inputmode="numeric" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-generate">
+            <i class="fas fa-qrcode"></i> Buat QR Pembayaran
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Tab: Riwayat -->
+    <section id="tab-riwayat" class="tab-content">
+      <div class="filter-card">
+        <div class="date-row">
+          <div class="date-col">
+            <input type="date" id="filter-start" class="date-input">
+          </div>
+          <div class="date-col">
+            <input type="date" id="filter-end" class="date-input">
+          </div>
+        </div>
+        <button id="btn-filter" class="btn-generate" style="padding: 10px; font-size: 0.9rem; margin-top:0;">
+          <i class="fas fa-filter"></i> Filter Tanggal
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Waktu</th>
+              <th>Nominal</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <!-- Data injected by JS -->
+          </tbody>
+        </table>
+        <div id="history-empty" class="empty-state" style="display:none;">
+          <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i>
+          <p>Belum ada transaksi berhasil</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="tab-bayar">
+        <i class="fas fa-qrcode"></i>
+        <span>Bayar</span>
+      </button>
+      <button class="nav-item" data-tab="tab-riwayat">
+        <i class="fas fa-history"></i>
+        <span>Riwayat</span>
+      </button>
+    </nav>
+
+    <!-- Popup QR Result -->
+    <div id="qr-popup" class="popup-overlay">
+      <div class="popup-content">
+        <div class="popup-header">
+          <div class="popup-title">Scan QRIS</div>
+          <button class="btn-close" id="btn-close-popup">&times;</button>
+        </div>
+        
+        <div id="qrcode"></div>
+        <div id="display-amount" class="amount-display">Rp 0</div>
+        
+        <!-- Tombol Download DIHAPUS -->
+
+        <div class="status-actions">
+          <button type="button" class="btn-status btn-cancel" id="btn-status-cancel">Batal</button>
+          <button type="button" class="btn-status btn-paid" id="btn-status-paid">Sudah Bayar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
